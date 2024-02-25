@@ -1,0 +1,49 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1" name=viewport>
+  <title>AZT Tracks</title>
+  <link href="/static/site.css" rel=stylesheet>
+</head>
+<body>
+<h1>AZT Tracks</h1>
+<p>
+<form action="/download" method=get>
+  <label for=start>Start Passage:</label>
+  <select name=start id=start>
+    {% for passage in passages %}
+    <option value={{passage.passage}}>{{passage.formatted_name()}}</option>
+    {% endfor %}
+  </select>
+  <br>
+  <label for=end>End Passage:</label>
+  <select name=end id=end>
+    <option value=100>To northern terminus</option>
+    <option value=-3>Start + 3</option>
+    <option value=-2>Start + 2</option>
+    <option value=-1>Start + 1</option>
+    <option value=0 selected>Same as start</option>
+    {% for passage in passages %}
+    <option value={{passage.passage}}>{{passage.formatted_name()}}</option>
+    {% endfor %}
+  </select>
+  <br>
+  <fieldset>
+    <legend>Format</legend>
+    <input type=radio id=formatgpx name=format value=gpx checked /> <label for=formatgpx>GPX</label>
+    <br>
+    <input type=radio id=formatkml name=format value=kml /> <label for=formatkml>KML</label>
+  </fieldset>
+  <fieldset>
+    <legend>Include waypoints</legend>
+    {% for name, checked in waypoints %}
+    <input type=checkbox id="waypoints{{name}}" name=waypoints value="{{name}}"{% if checked %} checked{% endif %} />
+    <label for="waypoints{{name}}">{{name}}</label>
+    <br>
+    {% endfor %}
+  </fieldset>
+  <input type=submit value="Download" />
+  </form>
+</body>
+</html>

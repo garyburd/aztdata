@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx xmlns="http://www.topografix.com/GPX/1/1" version="1.1">
+{% for passage in passages %}
+<trk>
+<name>{{passage.formatted_name()}}</name><trkseg>
+{% for p in passage.track() %}
+<trkpt lat="{{p.lat}}" lon="{{p.lon}}"><ele>{{p.ele}}</ele></trkpt>{% endfor %}
+</trkseg></trk>
+{% for p in passage.waypoints(allowed_waypoint_types) %}
+<wpt lat="{{p.lat}}" lon="{{p.lon}}"><ele>{{p.ele}}</ele>
+  <name>{{p.name}}</name>{% if p.comment %}<cmt>{{p.comment}}</cmt>{% endif %}
+  <extensions><coros_type>19</coros_type><coros_flag>0</coros_flag></extensions></wpt>{% endfor %}
+{% endfor %}
+</gpx>

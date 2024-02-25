@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1" name=viewport>
+  <title>AZT Tracks</title>
+  <link href="/static/site.css" rel=stylesheet>
+</head>
+<body>
+<p>
+<h1>Miles</h1>
+<table>
+  <thead>
+    <tr><th>Passage</th><th>Start</th><th>End</th><th>Length</th></tr>
+  </thead>
+  <tbody>
+    {% for p, mile in data %}
+    <tr>
+        <td>{{p.num}}: {{p.name}}</td>
+        <td>{{"%.1f"|format(mile)}}</td>
+        <td>{{"%.1f"|format(mile + p.calc_miles)}}</td>
+        <td>{{"%.1f"|format(p.calc_miles)}}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</body>
+</html>
