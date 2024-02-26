@@ -150,9 +150,11 @@ class Passage(typing.NamedTuple):
 @app.route('/download')
 def download():
     args = flask.request.args
-    allowed_waypoint_types = set(args.getlist('waypoints', type=str))
-    if 'all' in allowed_waypoint_types:
-        allowed_waypoint_types = set(waypoint_types)
+    allowed_waypoint_types = set(
+        waypoint_types[i]
+        for i in args.getlist('wp', type=int)
+        if i >= 0 and i < len(waypoint_types)
+    )
 
     format = args.get('format', default='gpx')
     if format not in ('gpx', 'kml'):
@@ -205,13 +207,14 @@ def download():
 
 @app.route('/')
 def root():
-    # name, checked
+    # index, name, checked
     waypoints = [
         (
+            i,
             name,
             name in default_checked_waypoint_types,
         )
-        for name in waypoint_types
+        for i, name in enumerate(waypoint_types)
     ]
     passages = [
         Passage(passage=passage, name=name, fname='')
