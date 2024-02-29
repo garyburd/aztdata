@@ -8,6 +8,7 @@ import csv
 import pathlib
 import sqlite3
 import sys
+import os
 
 # db column name, db column type, record field name
 passage_columns = [
@@ -56,13 +57,17 @@ def column_index(columns, name: str) -> int:
     assert False, f'column {name} not found'
 
 
+TMP_FILE = 'tmp.trail.db'
+FILE = 'trail.db'
+
+
 def run(
     dst: pathlib.Path, passage_src: pathlib.Path, waypoints_src: pathlib.Path
 ):
     dst.mkdir(exist_ok=True)
-    (dst / 'trail.db').unlink(missing_ok=True)
+    (dst / TMP_FILE).unlink(missing_ok=True)
 
-    con = sqlite3.connect(dst / 'trail.db')
+    con = sqlite3.connect(dst / TMP_FILE)
 
     con.execute(create_table_statement(passage_columns, 'passages'))
 
@@ -101,6 +106,7 @@ def run(
                 con.execute(stmt, data)
 
     con.close()
+    os.replace(dst / TMP_FILE, dst / FILE)
 
 
 run(

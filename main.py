@@ -1,9 +1,11 @@
-import flask
-import sqlite3
-import pathlib
-import csv
-import typing
 from collections import abc
+import csv
+import flask
+import gzip
+import io
+import pathlib
+import sqlite3
+import typing
 
 app = flask.Flask(__name__)
 DATA_DIR = pathlib.Path('./data')
@@ -191,16 +193,23 @@ def download():
         name = f'AZT Passages {passages[0].passage} - {passages[-1].passage}'
         stem = f'passage-{passages[0].passage}-{passages[-1].passage}'
 
+    b = flask.render_template(
+        f'{format}.xml',
+        name=name,
+        passages=passages,
+        allowed_waypoint_types=allowed_waypoint_types,
+    )
+    cb = io.BytesIO()
+    zf = gzip.GzipFile(mode='wb', fileobj=cb)
+    zf.write(bytes(b, 'utf-8'))
+    zf.close()
+
     return flask.Response(
-        flask.render_template(
-            f'{format}.xml',
-            name=name,
-            passages=passages,
-            allowed_waypoint_types=allowed_waypoint_types,
-        ),
+        cb.getvalue(),
         mimetype='text/xml',
         headers={
-            'Content-Disposition': f'attachment; filename="{stem}.{format}"'
+            'Content-Disposition': f'attachment; filename="{stem}.{format}"',
+            'Content-Encoding': 'gzip',
         },
     )
 

@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1" name=viewport>
+  <link rel="shortcut icon" href="/static/favicon.ico" type="image/x-icon">
   <title>AZT Tracks</title>
   <link href="/static/site.css" rel=stylesheet>
 </head>
@@ -56,7 +57,7 @@
         for (const pair of fd.entries()) {
           kvpairs.push(`${encodeURIComponent(pair[0])}=${encodeURIComponent(pair[1])}`);
         }
-        let s = `${form.action}/download?${kvpairs.join("&")}`;
+        let s = `${form.action}?${kvpairs.join("&")}`;
         text.textContent = s;
       }
       form.addEventListener("submit", showuri);
