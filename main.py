@@ -6,6 +6,7 @@ import io
 import pathlib
 import sqlite3
 import typing
+import templates
 
 app = flask.Flask(__name__)
 DATA_DIR = pathlib.Path('./data')
@@ -103,7 +104,7 @@ class Passage(typing.NamedTuple):
             lat,
             ele,
         ) in get_db().execute(
-            """SELECT type, name, notes, comment, ata_num, lon, lat, ele FROM waypoints 
+            """SELECT type, name, notes, comment, ata_num, lon, lat, ele FROM waypoints
             WHERE passage = ?""",
             (self.passage,),
         ):
@@ -158,8 +159,9 @@ def download():
         if i >= 0 and i < len(waypoint_types)
     )
 
-    format = args.get('format', default='gpx')
-    if format not in ('gpx', 'kml'):
+    fmt_templates = dict(gpx=templates.gpx, kml=templates.kml)
+    fmt = args.get('format', default='gpx')
+    if fmt not in fmt_templates:
         flask.abort(400, description='Invalid format')
 
     start = args.get('start', type=int, default=1)
@@ -176,7 +178,10 @@ def download():
         Passage(passage=passage, name=name, fname=fname)
         for passage, name, fname in get_db().execute(
             """SELECT passage, name, fname FROM passages
-           WHERE CAST(passage as INTEGER) >= ? AND CAST(passage as INTEGER) <= ?
+           WHERE
+                passage GLOB '[0-9][0-9]'
+                AND CAST(passage as INTEGER) >= ?
+                AND CAST(passage as INTEGER) <= ?
            ORDER BY passage
            """,
             (start, end),
@@ -193,22 +198,21 @@ def download():
         name = f'AZT Passages {passages[0].passage} - {passages[-1].passage}'
         stem = f'passage-{passages[0].passage}-{passages[-1].passage}'
 
-    b = flask.render_template(
-        f'{format}.xml',
+    out = io.BytesIO()
+    gz = gzip.open(out, encoding='utf-8', mode='wt')
+    fmt_templates[fmt](
+        gz.write,
         name=name,
         passages=passages,
         allowed_waypoint_types=allowed_waypoint_types,
     )
-    cb = io.BytesIO()
-    zf = gzip.GzipFile(mode='wb', fileobj=cb)
-    zf.write(bytes(b, 'utf-8'))
-    zf.close()
+    gz.close()
 
     return flask.Response(
-        cb.getvalue(),
+        out.getvalue(),
         mimetype='text/xml',
         headers={
-            'Content-Disposition': f'attachment; filename="{stem}.{format}"',
+            'Content-Disposition': f'attachment; filename="{stem}.{fmt}"',
             'Content-Encoding': 'gzip',
         },
     )
@@ -228,14 +232,14 @@ def root():
     passages = [
         Passage(passage=passage, name=name, fname='')
         for passage, name in get_db().execute(
-            """SELECT passage, name FROM passages 
-               WHERE CAST(passage as INTEGER) > 0
+            """SELECT passage, name FROM passages
+               WHERE passage GLOB '[0-9][0-9]'
                ORDER BY passage"""
         )
     ]
-    return flask.render_template(
-        'index.html', passages=passages, waypoints=waypoints
-    )
+    out = io.StringIO()
+    templates.index(out.write, passages, waypoints)
+    return out.getvalue()
 
 
 with app.app_context():
