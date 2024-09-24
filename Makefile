@@ -5,7 +5,6 @@ serve:
 
 .PHONY: build
 build:
-	python3 build.py ./data/ $(HOME)/Downloads/poly/commondata/new_azt_gpx_data_for_ata/AZT_Passages $(HOME)/Downloads/points/commondata/new_azt_gpx_data_for_ata/AZT_Waypoints
-	python3 build25.py ./data/ $(HOME)/Downloads/fix/pass_25_new.gpx
-
-
+	python3 build.py ./data/ \
+		$(HOME)/Downloads/Arizona_National_Scenic_Trail_Polylines/commondata/new_azt_gpx_data_for_ata/AZT_Passages \
+		$(HOME)/Downloads/Arizona_National_Scenic_Trail_Points/commondata/new_azt_gpx_data_for_ata/AZT_Waypoints
