@@ -61,6 +61,23 @@ def index(write, passages, waypoints) -> None:
                             )
                     d.BR()
                     with d.FIELDSET():
+                        d.LEGEND()('Direction')
+                        d.INPUT(
+                            type='radio',
+                            id='dirnobo',
+                            name='dir',
+                            value='NOBO',
+                            checked=True,
+                        )
+                        d.LABEL(for_='dirnobo')('NOBO')
+                        d.INPUT(
+                            type='radio',
+                            id='dirsobo',
+                            name='dir',
+                            value='SOBO',
+                        )
+                        d.LABEL(for_='dirsobo')('SOBO')
+                    with d.FIELDSET():
                         d.LEGEND()('Format')
                         d.INPUT(
                             type='radio',
@@ -96,18 +113,18 @@ def index(write, passages, waypoints) -> None:
                 d.printr(script)
 
 
-def gpx(write, name, passages, allowed_waypoint_types) -> None:
+def gpx(write, name, passages, allowed_waypoint_types, direction) -> None:
     _ = name
     d = tags.XDocument(write)
     d.printr('<?xml version="1.0" encoding="UTF-8"?>')
     with d.tag(
         'gpx', xmlns='http://www.topografix.com/GPX/1/1', version='1.1'
     ):
-        for passage in passages:
+        for passage in direction(passages):
             with d.tag('trk'):
                 d.tag('name')(passage.formatted_name())
                 with d.tag('trkseg'):
-                    for p in passage.track():
+                    for p in direction(passage.track()):
                         with d.tag('trkpt', lat=p.lat, lon=p.lon):
                             d.tag('ele')(p.ele)
             for p in passage.waypoints(allowed_waypoint_types):
@@ -196,7 +213,7 @@ styles = """
 """
 
 
-def kml(write, name, passages, allowed_waypoint_types) -> None:
+def kml(write, name, passages, allowed_waypoint_types, direction) -> None:
     d = tags.XDocument(write)
     d.printr('<?xml version="1.0" encoding="UTF-8"?>')
     with d.tag('kml', xmlns='http://www.opengis.net/kml/2.2'):
@@ -204,7 +221,7 @@ def kml(write, name, passages, allowed_waypoint_types) -> None:
             d.tag('name')(name)
             d.tag('open')('1')
             d.printr(styles)
-            for passage in passages:
+            for passage in direction(passages):
                 with d.tag('Folder'):
                     d.tag('name')(passage.formatted_name())
                     with d.tag('Placemark'):
@@ -214,17 +231,17 @@ def kml(write, name, passages, allowed_waypoint_types) -> None:
                             with d.tag('LineString'):
                                 d.tag('tesselate')('1')
                                 with d.tag('coordinates'):
-                                    for p in passage.track():
+                                    for p in direction(passage.track()):
                                         d.printr(f'{p.lon},{p.lat},{p.ele}\n')
-                with d.tag('Folder'):
-                    d.tag('name')('Waypoints')
-                    for p in passage.waypoints(allowed_waypoint_types):
-                        with d.tag('Placemark'):
-                            d.tag('name')(p.name)
-                            if p.comment:
-                                d.tag('description')(p.comment)
-                            d.tag('styleUrl')(f'#{p.style()}')
-                            with d.tag('Point'):
-                                d.tag('coordinates')(
-                                    f'{p.lon},{p.lat},{p.ele}'
-                                )
+                    with d.tag('Folder'):
+                        d.tag('name')('Waypoints')
+                        for p in passage.waypoints(allowed_waypoint_types):
+                            with d.tag('Placemark'):
+                                d.tag('name')(p.name)
+                                if p.comment:
+                                    d.tag('description')(p.comment)
+                                d.tag('styleUrl')(f'#{p.style()}')
+                                with d.tag('Point'):
+                                    d.tag('coordinates')(
+                                        f'{p.lon},{p.lat},{p.ele}'
+                                    )

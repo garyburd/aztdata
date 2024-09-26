@@ -159,6 +159,10 @@ def download():
         if i >= 0 and i < len(waypoint_types)
     )
 
+    direction = lambda x: x
+    if args.get('dir', default='NOBO') == 'SOBO':
+        direction = lambda x: reversed(list(x))
+
     fmt_templates = dict(gpx=templates.gpx, kml=templates.kml)
     fmt = args.get('format', default='gpx')
     if fmt not in fmt_templates:
@@ -205,6 +209,7 @@ def download():
         name=name,
         passages=passages,
         allowed_waypoint_types=allowed_waypoint_types,
+        direction=direction,
     )
     gz.close()
 
